@@ -1,5 +1,16 @@
+#In this part we will communicate with the esp 32
 import cv2
 import mediapipe as mp
+import serial
+import time
+
+#setting up serian communication with the esp32
+try:
+    esp_serial = serial.Serial("COM8",115200,timeout = 1)
+    time.sleep(2)
+    print("---- SERIAL COMMUNICATION ESTABLISHED SUCCESSFULLY ----")
+except:
+    print("---- UNABLE TO COMMUNICATE TO ESP32 ----")
 
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(min_detection_confidence = 0.7 , min_tracking_confidence = 0.7)
@@ -44,6 +55,11 @@ while cap.isOpened():
             elif cy > (2*height) //3:
                 movement_cmd = "B"
                 
+                
+            #writting command to Serial
+            if esp_serial.is_open:
+                esp_serial.write((movement_cmd + "\n").encode())
+                
             #drawing Landmarks
             mp_draw.draw_landmarks(frame,hand_landmarks,mp_hands.HAND_CONNECTIONS)
 
@@ -57,5 +73,9 @@ while cap.isOpened():
 
 cap.release()
 cv2.destroyAllWindows()
+esp_serial.close()
+print("---- SERIAL COMMUNICATION CLOSED ----")
+
+
 
 
